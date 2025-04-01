@@ -135,6 +135,11 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    pub fn current_task(&self) -> TaskControlBlock {
+        let inner = self.inner.exclusive_access();
+        inner.tasks[inner.current_task]
+    }
 }
 
 /// Run the first task in task list.
