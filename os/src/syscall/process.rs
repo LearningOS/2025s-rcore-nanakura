@@ -3,6 +3,9 @@ use crate::{
     task::{exit_current_and_run_next, suspend_current_and_run_next},
     timer::get_time_us,
 };
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use lazy_static::lazy_static;
 
 #[repr(C)]
 #[derive(Debug)]
