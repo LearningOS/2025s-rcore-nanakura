@@ -1,11 +1,8 @@
 //! Process management syscalls
 use crate::{
-    task::{exit_current_and_run_next, suspend_current_and_run_next},
+    task::{exit_current_and_run_next, suspend_current_and_run_next, TASK_MANAGER},
     timer::get_time_us,
 };
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use lazy_static::lazy_static;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -41,29 +38,23 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
     0
 }
 
-lazy_static! {
-    static ref SYSCALL_COUNTS: HashMap<usize, AtomicUsize> = HashMap::new();
-}
-
 // TODO: implement the syscall
 pub fn sys_trace(trace_request: usize, id: usize, data: usize) -> isize {
     trace!("kernel: sys_trace");
     match trace_request {
         0 => {
             let ptr = id as *const u8;
-            (*ptr) as isize
+            unsafe{ (*ptr) as isize }
         }
         1 => {
             let ptr = id as *mut u8;
-            *ptr = data as u8;
+            unsafe { *ptr = data as u8 };
             0
         }
         2 => {
-            let count = SYSCALL_COUNTS
-                .entry(id)
-                .or_insert_with(AtomicUsize::default)
-                .fetch_add(1, Ordering::SeqCst);
-            (count + 1) as isize
+            let task = TASK_MANAGER.current_task();
+            let info = task.info();
+            info.syscall_times[id] as isize
         }
         _ => -1,
     }
