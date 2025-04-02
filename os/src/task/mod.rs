@@ -142,6 +142,15 @@ impl TaskManager {
         let current = inner.current_task;
         inner.tasks[current]
     }
+
+    /// 增加调用次数
+    pub fn syscall_count_inc(&self, id: usize) {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        let mut x = inner.tasks[current];
+        x.syscall_count[id] += 1;
+        inner.tasks[current] = x;
+    }
 }
 
 /// Run the first task in task list.
